@@ -31,7 +31,7 @@ async function handleRequest(request) {
           align-items: center;
           min-height: 100vh;
           margin: 0;
-          background-color: #1a202c; /* Dark background */
+          background-color: #44a33c; /* Dark background */
           color: #e2e8f0; /* Light text */
           text-align: center;
           padding: 1rem;
