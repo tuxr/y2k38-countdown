@@ -1,0 +1,5 @@
+{
+  "name": "y2k38-countdown",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-05-15"
+}
