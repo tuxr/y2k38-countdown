@@ -20,11 +20,10 @@ async function handleRequest(request) {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Countdown to Y2K38</title>
-      <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
       <style>
         body {
-          font-family: 'Press Start 2P', monospace; /* Pixelated monospaced font */
-          background-color: #282828; /* Black background */
+          font-family: 'Monaco', 'Lucida Console', 'monospace';
+          background-color: #000000; /* True black background */
           color: #66FF66; /* Green text */
           margin: 0;
           padding: 1rem;
@@ -36,6 +35,7 @@ async function handleRequest(request) {
           box-sizing: border-box; /* Ensure padding doesn't make it exceed viewport */
         }
         #countdown-container {
+          background-color: #000000; /* Match body background */
           border: 2px solid #66FF66; /* Green border */
           padding: 1.5rem;
           width: auto;
@@ -45,23 +45,30 @@ async function handleRequest(request) {
           box-shadow: 0 0 10px #66FF66; /* Optional: subtle glow effect */
         }
         h1 {
-          font-size: 1.1em; /* Adjusted for pixel font */
+          font-family: inherit; /* Ensure consistency with body font */
+          font-size: 0.9em; /* Adjusted for title bar */
           margin-top: 0;
-          margin-bottom: 1em;
+          margin-bottom: 1em; /* Spacing below title bar */
           text-transform: uppercase;
+          border-top: 1px solid #66FF66; /* Top border for title bar */
           border-bottom: 1px solid #66FF66; /* Separator line */
           padding-bottom: 0.5em;
           letter-spacing: 0.1em; /* Spacing for uppercase letters */
+          background-color: inherit; /* Match container background */
+          color: inherit; /* Match text color */
+          text-align: center; /* Center title text */
         }
         #countdown {
-          font-size: 0.9em; /* Adjusted for pixel font */
+          font-family: inherit; /* Ensure consistency with body font */
+          font-size: 0.9em;
           line-height: 1.8; /* Increased line height for readability */
           white-space: pre;    /* Preserve newlines and spaces from JS */
           margin-top: 1em;
           margin-bottom: 1em;
         }
         p {
-          font-size: 0.8em; /* Adjusted for pixel font */
+          font-family: inherit; /* Ensure consistency with body font */
+          font-size: 0.8em;
           line-height: 1.6;
           margin-top: 1em;
           margin-bottom: 0; /* Remove bottom margin if it's the last element */
