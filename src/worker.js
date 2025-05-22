@@ -121,14 +121,12 @@ async function handleRequest(request) {
           const minutes = Math.floor((difference / (1000 * 60)) % 60);
           const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
           const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const years = Math.floor(totalDays / 365.25); // Using 365.25 for a bit more accuracy with leap years
-          const days = Math.floor(totalDays % 365.25);
+          const days = totalDays;
 
           // Update the countdown display
           // Using textContent to prevent HTML injection and preserve formatting from newlines
           countdownElement.textContent =
-            formatTimeSegment(years, "YEARS") +
-            formatTimeSegment(days, "DAYS") +
+            formatTimeSegment(days, "DAYS") + // Use the modified 'days' variable
             formatTimeSegment(hours, "HOURS") +
             formatTimeSegment(minutes, "MINUTES") +
             formatTimeSegment(seconds, "SECONDS");
