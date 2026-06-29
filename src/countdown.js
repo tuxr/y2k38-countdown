@@ -40,6 +40,8 @@ const targetEpochTime = ${targetEpoch};
 const countdownElement = document.getElementById('countdown');
 let intervalId;
 
+${formatTimeSegment.toString()}
+${computeCountdownParts.toString()}
 ${formatCountdownDisplay.toString()}
 
 function updateCountdown() {
