@@ -1,7 +1,15 @@
-// Listen for incoming fetch events (HTTP requests)
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request))
-})
+import {
+  Y2K38_TARGET_EPOCH,
+  buildBrowserScript,
+  formatCountdownDisplay,
+} from './countdown.js';
+
+const RESPONSE_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'",
+};
 
 /**
  * Handles the incoming request and returns an HTML response with the countdown.
@@ -9,10 +17,27 @@ addEventListener('fetch', event => {
  * @returns {Response} - The HTML response.
  */
 async function handleRequest(request) {
-  // Target date and time: January 19, 2038, 03:14:08 UTC
-  const targetDateEpoch = new Date('2038-01-19T03:14:08Z').getTime();
+  if (request.method !== 'GET') {
+    return new Response('Method Not Allowed', {
+      status: 405,
+      headers: {
+        ...RESPONSE_HEADERS,
+        Allow: 'GET',
+      },
+    });
+  }
 
-  // HTML content for the countdown page
+  const url = new URL(request.url);
+  if (url.pathname !== '/') {
+    return new Response('Not Found', {
+      status: 404,
+      headers: RESPONSE_HEADERS,
+    });
+  }
+
+  const noscriptCountdown = formatCountdownDisplay(Y2K38_TARGET_EPOCH - Date.now());
+  const browserScript = buildBrowserScript(Y2K38_TARGET_EPOCH);
+
   const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -25,7 +50,7 @@ async function handleRequest(request) {
           box-sizing: border-box;
         }
         body {
-          font-family: 'Monaco', 'Lucida Console', 'monospace';
+          font-family: 'Monaco', 'Lucida Console', monospace;
           background-color: #000000; /* True black background */
           color: #66FF66; /* Green text */
           margin: 0;
@@ -153,70 +178,29 @@ async function handleRequest(request) {
     <body>
       <div id="countdown-container">
         <h1>System Monitor: Y2K38 Event</h1>
-        <div id="countdown">
+        <div id="countdown" aria-live="polite">
+          <noscript>${noscriptCountdown}</noscript>
           <span class="loading-text">INITIALIZING COUNTDOWN SEQUENCE...</span>
         </div>
         <p>> The Y2K38 problem refers to the time encoding limit in many 32-bit systems at 03:14:07 UTC on 19 January 2038.</p>
       </div>
 
       <script>
-        const targetEpochTime = ${targetDateEpoch};
-        const countdownElement = document.getElementById('countdown');
-
-        function formatTimeSegment(value, label) {
-            // Pad numeric values (H, M, S) to 2 digits. Years and Days can be longer.
-            const displayValue = (label === "YEARS" || label === "DAYS") ? value.toString() : value.toString().padStart(2, '0');
-            // Pad labels for alignment. Max label length is 7 ("SECONDS"), pad to 8.
-            const paddedLabel = label.padEnd(8, ' '); 
-            return \`\${paddedLabel}: \${displayValue}\n\`; // Use \` for template literal
-        }
-
-        function updateCountdown() {
-          const currentTime = new Date().getTime();
-          const difference = targetEpochTime - currentTime;
-
-          if (difference <= 0) {
-            countdownElement.textContent = \`> Y2K38 THRESHOLD REACHED.\n> CHECK SYSTEM STATUS IMMEDIATELY.\`;
-            countdownElement.classList.remove('loading-text'); // Remove blinking cursor
-            if (intervalId) clearInterval(intervalId);
-            return;
-          }
-
-          const seconds = Math.floor((difference / 1000) % 60);
-          const minutes = Math.floor((difference / (1000 * 60)) % 60);
-          const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-          const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
-          const days = totalDays;
-
-          // Update the countdown display
-          // Using textContent to prevent HTML injection and preserve formatting from newlines
-          countdownElement.textContent =
-            formatTimeSegment(days, "DAYS") + // Use the modified 'days' variable
-            formatTimeSegment(hours, "HOURS") +
-            formatTimeSegment(minutes, "MINUTES") +
-            formatTimeSegment(seconds, "SECONDS");
-          countdownElement.classList.remove('loading-text'); // Remove blinking cursor once loaded
-        }
-
-        const intervalId = setInterval(updateCountdown, 1000);
-        // Initial call to display the countdown immediately or show loading
-        // The "Loading..." text is now part of the initial HTML.
-        // updateCountdown(); // Call this to immediately show numbers, or let the interval do it.
-        // For a more "typed out" feel, let the first interval update it.
-        // Or, for immediate display:
-        if (countdownElement.querySelector('.loading-text')) {
-            // Keep loading text until first update
-        } else {
-             updateCountdown(); // If no loading text, update immediately (e.g. if JS reloads)
-        }
-
-
+${browserScript}
       <\/script>
     </body>
     </html>
   `;
 
   return new Response(html, {
-    headers: { 'content-type': 'text/html;charset=UTF-8' },
+    headers: {
+      ...RESPONSE_HEADERS,
+      'content-type': 'text/html;charset=UTF-8',
+      'Cache-Control': 'public, max-age=60',
+    },
   });
 }
+
+export default {
+  fetch: handleRequest,
+};
