@@ -34,7 +34,10 @@ export function formatCountdownDisplay(differenceMs) {
   );
 }
 
-export function buildBrowserScript(targetEpoch) {
+/** Delay before revealing the countdown, in milliseconds. */
+export const LOADING_DELAY_MS = 1200;
+
+export function buildBrowserScript(targetEpoch, loadingDelayMs = LOADING_DELAY_MS) {
   return `
 const targetEpochTime = ${targetEpoch};
 const countdownElement = document.getElementById('countdown');
@@ -53,7 +56,9 @@ function updateCountdown() {
   }
 }
 
-updateCountdown();
-intervalId = setInterval(updateCountdown, 1000);
+setTimeout(() => {
+  updateCountdown();
+  intervalId = setInterval(updateCountdown, 1000);
+}, ${loadingDelayMs});
 `.trim();
 }
