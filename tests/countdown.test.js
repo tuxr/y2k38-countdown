@@ -66,8 +66,33 @@ describe('buildBrowserScript', () => {
   it('embeds the target epoch and countdown update logic', () => {
     const script = buildBrowserScript(Y2K38_TARGET_EPOCH);
     assert.match(script, new RegExp(`const targetEpochTime = ${Y2K38_TARGET_EPOCH};`));
+    assert.match(script, /function formatTimeSegment/);
+    assert.match(script, /function computeCountdownParts/);
     assert.match(script, /function formatCountdownDisplay/);
     assert.match(script, /updateCountdown\(\);/);
     assert.match(script, /setInterval\(updateCountdown, 1000\)/);
+  });
+
+  it('runs in the browser without missing helper references', () => {
+    const script = buildBrowserScript(Y2K38_TARGET_EPOCH);
+    const countdownElement = { textContent: '', classList: { remove: () => {} } };
+    const previousDocument = globalThis.document;
+    const previousSetInterval = globalThis.setInterval;
+    const previousClearInterval = globalThis.clearInterval;
+
+    globalThis.document = {
+      getElementById: () => countdownElement,
+    };
+    globalThis.setInterval = () => 1;
+    globalThis.clearInterval = () => {};
+
+    try {
+      new Function(script)();
+      assert.match(countdownElement.textContent, /^DAYS\s+:/);
+    } finally {
+      globalThis.document = previousDocument;
+      globalThis.setInterval = previousSetInterval;
+      globalThis.clearInterval = previousClearInterval;
+    }
   });
 });
