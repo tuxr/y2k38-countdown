@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  LOADING_DELAY_MS,
   Y2K38_TARGET_EPOCH,
   buildBrowserScript,
   computeCountdownParts,
@@ -69,19 +70,25 @@ describe('buildBrowserScript', () => {
     assert.match(script, /function formatTimeSegment/);
     assert.match(script, /function computeCountdownParts/);
     assert.match(script, /function formatCountdownDisplay/);
+    assert.match(script, new RegExp(`setTimeout\\([\\s\\S]*?, ${LOADING_DELAY_MS}\\)`));
     assert.match(script, /updateCountdown\(\);/);
     assert.match(script, /setInterval\(updateCountdown, 1000\)/);
   });
 
   it('runs in the browser without missing helper references', () => {
-    const script = buildBrowserScript(Y2K38_TARGET_EPOCH);
+    const script = buildBrowserScript(Y2K38_TARGET_EPOCH, 0);
     const countdownElement = { textContent: '', classList: { remove: () => {} } };
     const previousDocument = globalThis.document;
+    const previousSetTimeout = globalThis.setTimeout;
     const previousSetInterval = globalThis.setInterval;
     const previousClearInterval = globalThis.clearInterval;
 
     globalThis.document = {
       getElementById: () => countdownElement,
+    };
+    globalThis.setTimeout = (fn) => {
+      fn();
+      return 1;
     };
     globalThis.setInterval = () => 1;
     globalThis.clearInterval = () => {};
@@ -91,6 +98,7 @@ describe('buildBrowserScript', () => {
       assert.match(countdownElement.textContent, /^DAYS\s+:/);
     } finally {
       globalThis.document = previousDocument;
+      globalThis.setTimeout = previousSetTimeout;
       globalThis.setInterval = previousSetInterval;
       globalThis.clearInterval = previousClearInterval;
     }
